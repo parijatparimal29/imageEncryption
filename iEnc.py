@@ -39,8 +39,10 @@ def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename
     
     encrypted_rgb = None
     # -todo- Perform encryption based on encryption method and update encrypted_rgb
-    
-    handle_output(encrypted_rgb, output_filename)
+    if(encrypted_rgb is None):
+        handle_output(to_hide_rgb, output_filename)
+    else:
+        handle_output(encrypted, output_filename)
     
 def decrypt(encrypted_image, encryption_method, output_filename):
     '''
