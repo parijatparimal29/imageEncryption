@@ -14,7 +14,7 @@ How to run:
 
 To encrypt an image into a placeholder image:
 
-python iEnc.py --in1 <placeholder_filename> --in2 <hide_image_filename> --en <encryption_method> --action enc --out <output_filename>
+$python iEnc.py --in1 <placeholder_filename> --in2 <hide_image_filename> --en <encryption_method> --action enc --out <output_filename>$
 
 Example:
 python iEnc.py --in1 placeholder.png --in2 hide.png --en dct --action enc --out out.png
