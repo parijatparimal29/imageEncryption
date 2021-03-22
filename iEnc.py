@@ -4,9 +4,9 @@ import numpy as np
 
 def handle_input(filename):
     '''
-        Converts filename into rgb matrix
+        Converts filename into rgb matrix (or rgba depending on input image)
         input   : string => filename
-        ouptut  : [[(r,g,b,a)]] => 2d numpy matrix where each element is a tuple of r, g, b, alpha
+        ouptut  : [[(r,g,b)]] or [[(r,g,b,a)]] => 2d matrix where each element is a tuple of r, g, b (or RGBA)
     '''
     
     img = Image.open(filename)
@@ -16,12 +16,13 @@ def handle_input(filename):
 
 def handle_output(rgb_matrix, output_filename):
     '''
-        Converts rgb matrix into image file
-        input    : [[(r,g,b,a)]] => 2d numpy matrix where each element is a tuple of r, g, b, alpha
+        Converts rgb (or rgba depending on input image) matrix into image file
+        input    : [[(r,g,b)]] or [[(r,g,b,a)]] => 2d matrix where each element is a tuple of r, g, b (or RGBA)
                    string => filename
     '''
     
-    # -todo- convert rgb matrix to output file
+    img = Image.fromarray(rgb_matrix)
+    img.save(output_filename)
     
 
 def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename):
