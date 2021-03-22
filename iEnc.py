@@ -6,7 +6,7 @@ def handle_input(filename):
     '''
         Converts filename into rgb matrix
         input   : string => filename
-        ouptut  : [[(r,g,b)]] => 2d matrix where each element is a tuple of r, g, b
+        ouptut  : [[(r,g,b,a)]] => 2d numpy matrix where each element is a tuple of r, g, b, alpha
     '''
     
     img = Image.open(filename)
@@ -17,7 +17,7 @@ def handle_input(filename):
 def handle_output(rgb_matrix, output_filename):
     '''
         Converts rgb matrix into image file
-        input    : [[(r,g,b)]] => 2d matrix where each element is a tuple of r, g, b
+        input    : [[(r,g,b,a)]] => 2d numpy matrix where each element is a tuple of r, g, b, alpha
                    string => filename
     '''
     
