@@ -1,4 +1,6 @@
 import argparse
+from PIL import Image
+import numpy as np
 
 def handle_input(filename):
     '''
@@ -7,8 +9,8 @@ def handle_input(filename):
         ouptut  : [[(r,g,b)]] => 2d matrix where each element is a tuple of r, g, b
     '''
     
-    rgb_matrix = None
-    # -todo- convert input file to rgb matrix 
+    img = Image.open(filename)
+    rgb_matrix = np.array(img)
     return rgb_matrix
     
 
