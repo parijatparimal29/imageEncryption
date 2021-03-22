@@ -66,12 +66,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     
     # Parse input from command line
-    parser.add_argument('--in1', help='enter placeholder image filename', default='input.png')
-    parser.add_argument('--in2', help='enter image filename that needs to be hidden', default='input.png')
-    parser.add_argument('--infile', help='enter encrypted image filename to decrypt', default='input.png')
+    parser.add_argument('--in1', help='enter placeholder image filename', default='bunny.png')
+    parser.add_argument('--in2', help='enter image filename that needs to be hidden', default='cube.png')
+    parser.add_argument('--infile', help='enter encrypted image filename to decrypt', default='bunny.png')
     parser.add_argument('--en', help='enter encryption method. Example - dct', default='dct')
     parser.add_argument('--action', help='enter action. enc to encrypt and dec to decrypt', default='enc')
-    parser.add_argument('--out', help='enter output filename', default='output')
+    parser.add_argument('--out', help='enter output filename', default='out.png')
     args = parser.parse_args()
     
     # Use arguments to perform requested action
