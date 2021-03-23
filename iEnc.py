@@ -36,8 +36,10 @@ def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename
     to_hide_rgb = handle_input(to_hide_image)
     
     encryption_parameter = 0.01
+    
     dct_image = dct(placeholder_rgb, norm='ortho') + (encryption_parameter * to_hide_rgb)
     encrypted_rgb = idct(dct_image, norm='ortho')
+    
     handle_output(encrypted_rgb, output_filename)
     
 def decrypt(encrypted_image, encryption_method, output_filename):
