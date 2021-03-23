@@ -42,22 +42,22 @@ def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename
     
     handle_output(encrypted_rgb, output_filename)
     
-def decrypt(encrypted_image, encryption_method, output_filename):
+def decrypt(placeholder_image, encrypted_image, encryption_method, output_filename):
     '''
         Encrypts to_hide_image into placeholder method using encryption_method and outputs encrypted file as output_filename
         input    : string => filename of encrypted image
                    string => encryption method chosen
                    string => filename of output image
     '''
-    
+    placeholder_rgb = handle_input(placeholder_image)
     encrypted_rgb = handle_input(encrypted_image)
     
-    decrypted_rgb = None
-    # -todo- Perform decryption based on encryption method and update decrypted_rgb
+    encryption_parameter = 0.01
     
+    decrypted_rgb = (dct(encrypted_rgb, norm='ortho') - dct(placeholder_rgb, norm='ortho'))/encryption_parameter
     handle_output(decrypted_rgb, output_filename)
     
-    
+
 
 if __name__ == '__main__':
     '''
