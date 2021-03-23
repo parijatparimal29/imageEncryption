@@ -35,12 +35,13 @@ def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename
     placeholder_rgb = handle_input(placeholder_image)
     to_hide_rgb = handle_input(to_hide_image)
     
-    encryption_parameter = 0.01
+    if(encryption_method == 'dct'):
+        encryption_parameter = 0.01
     
-    dct_image = dct(placeholder_rgb, norm='ortho') + (encryption_parameter * to_hide_rgb)
-    encrypted_rgb = idct(dct_image, norm='ortho')
+        dct_image = dct(placeholder_rgb, norm='ortho') + (encryption_parameter * to_hide_rgb)
+        encrypted_rgb = idct(dct_image, norm='ortho')
     
-    handle_output(encrypted_rgb, output_filename)
+        handle_output(encrypted_rgb, output_filename)
     
 def decrypt(placeholder_image, encrypted_image, encryption_method, output_filename):
     '''
@@ -52,10 +53,11 @@ def decrypt(placeholder_image, encrypted_image, encryption_method, output_filena
     placeholder_rgb = handle_input(placeholder_image)
     encrypted_rgb = handle_input(encrypted_image)
     
-    encryption_parameter = 0.01
+    if(encryption_method == 'dct'):
+        encryption_parameter = 0.01
     
-    decrypted_rgb = (dct(encrypted_rgb, norm='ortho') - dct(placeholder_rgb, norm='ortho'))/encryption_parameter
-    handle_output(decrypted_rgb, output_filename)
+        decrypted_rgb = (dct(encrypted_rgb, norm='ortho') - dct(placeholder_rgb, norm='ortho'))/encryption_parameter
+        handle_output(decrypted_rgb, output_filename)
     
 
 
@@ -69,8 +71,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     
     # Parse input from command line
-    parser.add_argument('--in1', help='enter placeholder image filename', default='bunny.png')
-    parser.add_argument('--in2', help='enter image filename that needs to be hidden', default='cube.png')
+    parser.add_argument('--place', help='enter placeholder image filename', default='bunny.png')
+    parser.add_argument('--hide', help='enter image filename that needs to be hidden', default='cube.png')
     parser.add_argument('--infile', help='enter encrypted image filename to decrypt', default='bunny.png')
     parser.add_argument('--en', help='enter encryption method. Example - dct', default='dct')
     parser.add_argument('--action', help='enter action. enc to encrypt and dec to decrypt', default='enc')
@@ -82,16 +84,17 @@ if __name__ == '__main__':
     
     # Encryption
     if(args.action == 'enc'):
-        placeholder_image = args.in1
-        to_hide_image = args.in2
+        placeholder_image = args.place
+        to_hide_image = args.hide
         encryption_method = args.en
         encrypt(placeholder_image, to_hide_image, encryption_method, output_filename)
         
     # Decryption    
     if(args.action == 'dec'):
+        placeholder_image = args.place
         encrypted_image = args.infile
         encryption_method = args.en
-        decrypt(encrypted_image, encryption_method, output_filename)
+        decrypt(placeholder_image, encrypted_image, encryption_method, output_filename)
         
     if(not (args.action == 'enc') and not (args.action == 'dec')):
         print("Invalid Arguments")
