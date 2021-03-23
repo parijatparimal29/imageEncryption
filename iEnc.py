@@ -50,6 +50,7 @@ def decrypt(placeholder_image, encrypted_image, encryption_method, output_filena
                    string => encryption method chosen
                    string => filename of output image
     '''
+    
     placeholder_rgb = handle_input(placeholder_image)
     encrypted_rgb = handle_input(encrypted_image)
     
