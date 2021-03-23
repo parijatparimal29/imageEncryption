@@ -1,5 +1,6 @@
 import argparse
-from PIL import Image
+from skimage import io
+from scipy.fftpack import dct, idct
 import numpy as np
 
 def handle_input(filename):
@@ -9,9 +10,7 @@ def handle_input(filename):
         ouptut  : [[(r,g,b)]] or [[(r,g,b,a)]] => 2d matrix where each element is a tuple of r, g, b (or RGBA)
     '''
     
-    img = Image.open(filename)
-    rgb_matrix = np.array(img)
-    return rgb_matrix
+    return io.imread(filename)/255
     
 
 def handle_output(rgb_matrix, output_filename):
@@ -21,8 +20,7 @@ def handle_output(rgb_matrix, output_filename):
                    string => filename
     '''
     
-    img = Image.fromarray(rgb_matrix)
-    img.save(output_filename)
+    io.imsave(output_filename,rgb_matrix)
     
 
 def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename):
@@ -37,12 +35,10 @@ def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename
     placeholder_rgb = handle_input(placeholder_image)
     to_hide_rgb = handle_input(to_hide_image)
     
-    encrypted_rgb = None
-    # -todo- Perform encryption based on encryption method and update encrypted_rgb
-    if(encrypted_rgb is None):
-        handle_output(to_hide_rgb, output_filename)
-    else:
-        handle_output(encrypted, output_filename)
+    encryption_parameter = 0.01
+    dct_image = dct(placeholder_rgb, norm='ortho') + (encryption_parameter * to_hide_rgb)
+    encrypted_rgb = idct(dct_image, norm='ortho')
+    handle_output(encrypted_rgb, output_filename)
     
 def decrypt(encrypted_image, encryption_method, output_filename):
     '''
