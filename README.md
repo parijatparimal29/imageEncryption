@@ -14,18 +14,18 @@ How to run:
 
 To encrypt an image into a placeholder image:
 ```bash
-python iEnc.py --in1 <placeholder_filename> --in2 <hide_image_filename> --en <encryption_method> --action enc --out <output_filename>
+python iEnc.py --place <placeholder_filename> --hide <hide_image_filename> --en <encryption_method> --action enc --out <output_filename>
 ```
 Example:
 ``` bash
-python iEnc.py --in1 placeholder.png --in2 hide.png --en dct --action enc --out out.png
+python iEnc.py --place placeholder.png --hide hide.png --en dct --action enc --out hidden.png
 ```
 To decrypt an image and get the original image:
 ```bash
-python iEnc.py --infile <encrypted_image_filename> --en <encryption_method> --action dec --out <output_filename>
+python iEnc.py --place <placeholder_filename> --infile <encrypted_image_filename> --en <encryption_method> --action dec --out <output_filename>
 ```
 Example:
 ```bash
-python iEnc.py --infile hidden.png --en dct --action dec --out out.png
+python iEnc.py --place placeholder.png --infile hidden.png --en dct --action dec --out out.png
 ```
 Note: Include path for filenames if the filename not in same folder as iEnc.py
