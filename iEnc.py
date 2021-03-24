@@ -21,7 +21,18 @@ def handle_output(rgb_matrix, output_filename):
     '''
     
     io.imsave(output_filename,rgb_matrix)
+
+def handle_var_size(placeholder, watermark):
+    '''
+        Resizes the images based on the size of placeholder and watermark, making them have the same shape
+        input    : placeholder and watermark image matrix
+    '''
+    M = max(placeholder.shape[0], watermark.shape[0])
+    N = max(placeholder.shape[1], watermark.shape[1])
     
+    placeholder_resized = resize(placeholder, (M, N), anti_aliasing=True)
+    watermark_resized = resize(watermark, (M, N), anti_aliasing=True)
+    return placeholder_resized, watermark_resized    
 
 def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename):
     '''
@@ -34,7 +45,8 @@ def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename
     
     placeholder_rgb = handle_input(placeholder_image)
     to_hide_rgb = handle_input(to_hide_image)
-    
+    placeholder_rgb, to_hide_rgb = handle_var_size(placeholder_rgb, to_hide_rgb)
+
     if(encryption_method == 'dct'):
         encryption_parameter = 0.01
     
