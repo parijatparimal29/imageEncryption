@@ -29,5 +29,7 @@ Example:
 python iEnc.py --place placeholder.png --hidden hidden.png --en dct --action dec --out out.png
 ```
 Note: Include path for filenames if the filename not in same folder as iEnc.py
---en dct    => encryption using only dct.
---en dctdwt => encryption using combination of dct and dwt.
+```bash
+--en dct ``` => encryption using only dct.
+```bash
+--en dctdwt ``` => encryption using combination of dct and dwt.
