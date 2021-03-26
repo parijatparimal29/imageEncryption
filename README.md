@@ -22,10 +22,12 @@ python iEnc.py --place placeholder.png --hide hide.png --en dct --action enc --o
 ```
 To decrypt an image and get the original image:
 ```bash
-python iEnc.py --place <placeholder_filename> --infile <encrypted_image_filename> --en <encryption_method> --action dec --out <output_filename>
+python iEnc.py --place <placeholder_filename> --hidden <encrypted_image_filename> --en <encryption_method> --action dec --out <output_filename>
 ```
 Example:
 ```bash
-python iEnc.py --place placeholder.png --infile hidden.png --en dct --action dec --out out.png
+python iEnc.py --place placeholder.png --hidden hidden.png --en dct --action dec --out out.png
 ```
 Note: Include path for filenames if the filename not in same folder as iEnc.py
+--en dct    => encryption using only dct.
+--en dctdwt => encryption using combination of dct and dwt.
