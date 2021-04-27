@@ -6,23 +6,62 @@ from skimage.transform import resize
 from scipy.fftpack import dct, idct
 import numpy as np
 
-def handle_input(filename):
+def save_as_fp(matrix, filename):
+    '''
+        Writes the matrix with fp to a .txt file to prevent loss
+        input    : numpy.ndarray => 2d matrix where each element is a tuple of r, g, b (or RGBA)
+                   string => filename of output txt file
+    '''
+    file = open(filename, "w", encoding ="utf-8")
+    
+    #Store the shape of the matrix
+    file.write(' '.join([str(elem) for elem in matrix.shape]) + '\n')
+    
+    #Store the pixel values with floating point
+    for row in matrix:
+        for tup in row:
+            file.write(' '.join([str(elem) for elem in tup]) + '\n')
+            
+    file.close()
+    
+def read_as_fp(filename):
+    '''
+        Reads the matrix fp from a .txt file to prevent loss
+        input    : string => filename of matrix txt file
+    '''
+    file = open(filename, "r", encoding ="utf-8")
+    textString = file.read().splitlines()
+    shape = textString[0].split()
+    num_of_rows = int(shape[0])
+    num_of_tuples = int(shape[1])
+    num_of_elems = int(shape[2])
+    tempArr = list()
+    for s in textString[1:]:
+        for num in s.split():
+            tempArr.append(float(num))
+    array = np.array(tempArr).reshape(num_of_rows, num_of_tuples, num_of_elems)
+    print(array.dtype.type)
+    return array
+
+def handle_input(filename, matrix_mode = False):
     '''
         Converts filename into rgb matrix (or rgba depending on input image)
         input   : string => filename
         ouptut  : [[(r,g,b)]] or [[(r,g,b,a)]] => 2d matrix where each element is a tuple of r, g, b (or RGBA)
     '''
-    
+    if matrix_mode:
+        return read_as_fp(filename[:filename.rfind('.')+1]+'txt')
     return io.imread(filename)/255
     
 
-def handle_output(rgb_matrix, output_filename):
+def handle_output(rgb_matrix, output_filename, matrix_mode = False):
     '''
         Converts rgb (or rgba depending on input image) matrix into image file
         input    : [[(r,g,b)]] or [[(r,g,b,a)]] => 2d matrix where each element is a tuple of r, g, b (or RGBA)
                    string => filename
     '''
-    
+    if matrix_mode:
+        save_as_fp(rgb_matrix, output_filename[:output_filename.rfind('.')+1]+'txt')
     io.imsave(output_filename,rgb_matrix)
 
 def handle_var_size(placeholder, watermark):
@@ -164,7 +203,7 @@ def enc_dct(encryption_parameter, placeholder_image, to_hide_image, encryption_m
     dct_image = dct(placeholder_rgb, norm='ortho') + (encryption_parameter * to_hide_rgb)
     encrypted_rgb = idct(dct_image, norm='ortho')
     
-    handle_output(encrypted_rgb, output_filename)
+    handle_output(encrypted_rgb, output_filename, True)
     
 def decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryption_method, output_filename):
     '''
@@ -175,7 +214,7 @@ def decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryp
     '''
     
     placeholder_rgb = handle_input(placeholder_image)
-    encrypted_rgb = handle_input(encrypted_image)
+    encrypted_rgb = handle_input(encrypted_image, True)
    
     decrypted_rgb = (dct(encrypted_rgb, norm='ortho') - dct(placeholder_rgb, norm='ortho'))/encryption_parameter
     
