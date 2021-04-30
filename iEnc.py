@@ -5,6 +5,8 @@ from skimage.color import rgb2gray
 from skimage.transform import resize
 from scipy.fftpack import dct, idct
 import numpy as np
+from numpy.random import MT19937
+from numpy.random import RandomState, SeedSequence
 
 def save_as_fp(matrix, filename):
     '''
@@ -40,10 +42,10 @@ def read_as_fp(filename):
         for num in s.split():
             tempArr.append(float(num))
     array = np.array(tempArr).reshape(num_of_rows, num_of_tuples, num_of_elems)
-    print(array.dtype.type)
+    #print(array.dtype.type)
     return array
 
-def handle_input(filename, matrix_mode = False):
+def handle_input(filename, matrix_mode=0):
     '''
         Converts filename into rgb matrix (or rgba depending on input image)
         input   : string => filename
@@ -54,7 +56,7 @@ def handle_input(filename, matrix_mode = False):
     return io.imread(filename)/255
     
 
-def handle_output(rgb_matrix, output_filename, matrix_mode = False):
+def handle_output(rgb_matrix, output_filename, matrix_mode=0):
     '''
         Converts rgb (or rgba depending on input image) matrix into image file
         input    : [[(r,g,b)]] or [[(r,g,b,a)]] => 2d matrix where each element is a tuple of r, g, b (or RGBA)
@@ -115,7 +117,54 @@ def extract_by_block(img_dct, block_size=8):
             combined_watermark.append(inner_dct[5][5])
     return combined_watermark
 
-def encrypt_dctdwt(placeholder_image, to_hide_image, encryption_method, output_filename='watermarked_image.png'):
+def get_loss(img1_file, img2_file):
+    img1 = handle_input(img1_file)
+    img2 = handle_input(img2_file)
+    return np.sum((img1 - img2)**2) / img1.size
+
+def shuffle_image(input_rgb, r1, r2):
+    rs_row = RandomState(MT19937(SeedSequence(r1)))
+    rs_col = RandomState(MT19937(SeedSequence(r2)))
+    
+    row_size = len(input_rgb)
+    col_size = len(input_rgb[0])
+    
+    shuf_rgb = np.zeros(input_rgb.shape)
+    
+    rows = list(range(row_size))
+    for i in range(row_size):
+        row = rs_row.choice(rows)
+        rows.remove(row)
+        cols = list(range(col_size))
+        for j in range(col_size):
+            col = rs_col.choice(cols)
+            cols.remove(col)
+            shuf_rgb[row][col] = input_rgb[i][j]
+            
+    return shuf_rgb
+
+def inverse_shuffle(input_rgb, r1, r2):
+    rs_row = RandomState(MT19937(SeedSequence(r1)))
+    rs_col = RandomState(MT19937(SeedSequence(r2)))
+    
+    row_size = len(input_rgb)
+    col_size = len(input_rgb[0])
+    
+    shuf_rgb = np.zeros(input_rgb.shape)
+    
+    rows = list(range(row_size))
+    for i in range(row_size):
+        row = rs_row.choice(rows)
+        rows.remove(row)
+        cols = list(range(col_size))
+        for j in range(col_size):
+            col = rs_col.choice(cols)
+            cols.remove(col)
+            shuf_rgb[i][j] = input_rgb[row][col]
+            
+    return shuf_rgb
+
+def encrypt_dctdwt(placeholder_image, to_hide_image, encryption_method, output_filename, shuffle, r1, r2, ll):
     '''
         Encrypts to_hide_image into placeholder method using encryption_method and outputs encrypted file as output_filename
         input    : string => placeholder filename
@@ -125,8 +174,12 @@ def encrypt_dctdwt(placeholder_image, to_hide_image, encryption_method, output_f
     '''
     
     #Getting Image matrices
-    placeholder_rgb = handle_input(placeholder_image)
-    to_hide_rgb = handle_input(to_hide_image)
+    placeholder_rgb = handle_input(placeholder_image, ll)
+    to_hide_rgb = handle_input(to_hide_image, ll)
+    
+    # Shuffle secret image
+    if(shuffle):
+        to_hide_rgb = shuffle_image(to_hide_rgb, r1, r2)
     
     #Resizing to correct sizes
     placeholder_rgb = handle_var_resize(placeholder_rgb, 2048)
@@ -157,9 +210,9 @@ def encrypt_dctdwt(placeholder_image, to_hide_image, encryption_method, output_f
     
     #Saving the output watermarked image
     #io.imshow(watermarked_img)
-    handle_output(watermarked_img, output_filename)
+    handle_output(watermarked_img, output_filename, ll)
     
-def decrypt_dctdwt(encrypted_image, output_filename = 'watermark.png'):
+def decrypt_dctdwt(encrypted_image, output_filename, shuffle, r1, r2, ll):
     '''
         Encrypts to_hide_image into placeholder method using encryption_method and outputs encrypted file as output_filename
         input    : string => filename of encrypted image
@@ -168,7 +221,7 @@ def decrypt_dctdwt(encrypted_image, output_filename = 'watermark.png'):
     '''
     
     #Getting image matrix 
-    encrypted_rgb = handle_input(encrypted_image)
+    encrypted_rgb = handle_input(encrypted_image, ll)
     
     #Resizing to correct sizes
     encrypted_rgb = handle_var_resize(encrypted_rgb, 2048)
@@ -183,10 +236,14 @@ def decrypt_dctdwt(encrypted_image, output_filename = 'watermark.png'):
     combined_watermark = extract_by_block(dct_l1, 8)
     decrypted_img = np.array(combined_watermark).reshape(128, 128)
     
+    # Inverse shuffle to get secret image
+    if(shuffle):
+        decrypted_img = inverse_shuffle(decrypted_img, r1, r2)
+    
     #Saving the output watermark image
-    handle_output(decrypted_img, output_filename)
+    handle_output(decrypted_img, output_filename, ll)
 
-def enc_dct(encryption_parameter, placeholder_image, to_hide_image, encryption_method, output_filename):
+def enc_dct(encryption_parameter, placeholder_image, to_hide_image, encryption_method, output_filename, shuffle, r1, r2, ll):
     '''
         Encrypts to_hide_image into placeholder method using encryption_method and outputs encrypted file as output_filename
         input    : float  => encryption parameter
@@ -196,16 +253,21 @@ def enc_dct(encryption_parameter, placeholder_image, to_hide_image, encryption_m
                    string => filename of output image
     '''
     
-    placeholder_rgb = handle_input(placeholder_image)
-    to_hide_rgb = handle_input(to_hide_image)
+    placeholder_rgb = handle_input(placeholder_image,ll)
+    to_hide_rgb = handle_input(to_hide_image,ll)
+    
+    # Shuffle secret image
+    if(shuffle):
+        to_hide_rgb = shuffle_image(to_hide_rgb, r1, r2)
+    
     placeholder_rgb, to_hide_rgb = handle_var_size(placeholder_rgb, to_hide_rgb)
 
     dct_image = dct(placeholder_rgb, norm='ortho') + (encryption_parameter * to_hide_rgb)
     encrypted_rgb = idct(dct_image, norm='ortho')
     
-    handle_output(encrypted_rgb, output_filename, True)
+    handle_output(encrypted_rgb, output_filename, ll)
     
-def decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryption_method, output_filename):
+def decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryption_method, output_filename, shuffle, r1, r2,ll):
     '''
         Encrypts to_hide_image into placeholder method using encryption_method and outputs encrypted file as output_filename
         input    : string => filename of encrypted image
@@ -214,13 +276,17 @@ def decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryp
     '''
     
     placeholder_rgb = handle_input(placeholder_image)
-    encrypted_rgb = handle_input(encrypted_image, True)
+    encrypted_rgb = handle_input(encrypted_image, ll)
    
     decrypted_rgb = (dct(encrypted_rgb, norm='ortho') - dct(placeholder_rgb, norm='ortho'))/encryption_parameter
     
+    # Inverse shuffle to get secret image
+    if(shuffle):
+        decrypted_rgb = inverse_shuffle(decrypted_rgb, r1, r2)
+    
     handle_output(decrypted_rgb, output_filename)
     
-def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename):
+def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename, shuffle=0, r1=0, r2=0, ll=0):
     '''
         Encrypts to_hide_image into placeholder method using encryption_method and outputs encrypted file as output_filename
         input    : string => placeholder filename
@@ -231,15 +297,15 @@ def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename
 
     if(encryption_method == 'dct'):
         encryption_parameter = 0.01
-        enc_dct(encryption_parameter, placeholder_image, to_hide_image, encryption_method, output_filename)
+        enc_dct(encryption_parameter, placeholder_image, to_hide_image, encryption_method, output_filename, shuffle, r1, r2,ll)
         
     elif(encryption_method == 'dctdwt'):
-        encrypt_dctdwt(placeholder_image, to_hide_image, encryption_method, output_filename)
+        encrypt_dctdwt(placeholder_image, to_hide_image, encryption_method, output_filename, shuffle, r1, r2,ll)
         
     else:
         print("Encryption Method not specified or unavailable")
     
-def decrypt(placeholder_image, encrypted_image, encryption_method, output_filename):
+def decrypt(placeholder_image, encrypted_image, encryption_method, output_filename, shuffle=0, r1=0, r2=0, ll=0):
     '''
         Encrypts to_hide_image into placeholder method using encryption_method and outputs encrypted file as output_filename
         input    : string => filename of encrypted image
@@ -249,10 +315,10 @@ def decrypt(placeholder_image, encrypted_image, encryption_method, output_filena
     
     if(encryption_method == 'dct'):
         encryption_parameter = 0.01
-        decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryption_method, output_filename)
+        decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryption_method, output_filename, shuffle, r1, r2,ll)
     
     elif(encryption_method == 'dctdwt'):
-        decrypt_dctdwt(encrypted_image, output_filename)
+        decrypt_dctdwt(encrypted_image, output_filename, shuffle, r1, r2,ll)
         
     else:
         print("Encryption Method not specified or unavailable")
@@ -273,22 +339,30 @@ if __name__ == '__main__':
     parser.add_argument('--en', help='enter encryption method. Example - dct', default='dct')
     parser.add_argument('--action', help='enter action. enc to encrypt and dec to decrypt', default='enc')
     parser.add_argument('--out', help='enter output filename', default='out.png')
+    parser.add_argument('--shuffle', help='Shuffle while watermarking 0 for False and 1 for True', default=0)
+    parser.add_argument('--r1', help='Enter seed for shuffle', default=0)
+    parser.add_argument('--r2', help='Enter seed for shuffle', default=0)
+    parser.add_argument('--ll', help='Watermarking - 1 for slow but lossless and 0 for fast with loss', default=0)
     args = parser.parse_args()
     
     # Use arguments to perform requested action
     output_filename = args.out
     placeholder_image = args.place
     encryption_method = args.en
+    shuffle = int(args.shuffle)
+    r1 = int(args.r1)
+    r2 = int(args.r2)
+    matrix_mode = int(args.ll)
     
     # Encryption
     if(args.action == 'enc'):
         to_hide_image = args.hide
-        encrypt(placeholder_image, to_hide_image, encryption_method, output_filename)
+        encrypt(placeholder_image, to_hide_image, encryption_method, output_filename, shuffle, r1, r2, matrix_mode)
         
     # Decryption    
     if(args.action == 'dec'):
         encrypted_image = args.hidden
-        decrypt(placeholder_image, encrypted_image, encryption_method, output_filename)
+        decrypt(placeholder_image, encrypted_image, encryption_method, output_filename, shuffle, r1, r2, matrix_mode)
         
     if(not (args.action == 'enc') and not (args.action == 'dec')):
         print("Invalid Arguments")
