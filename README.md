@@ -39,3 +39,18 @@ Note: Include path for filenames if the filename not in same folder as iEnc.py
 --en dctdwt 
 ``` 
 
+Optional arguments:
+
+To add a shuffle algorithm on top of other chosen algorithm, use the below argument:
+```bash
+--shuffle 1 --r1 <integer-32> --r2 <integer-32>
+```
+r1 and r2 are optional arguments, these are seed values for random numbers used in shuffle algorithm. Recovering the secret image is only possible if shuffle, r1 and r2 values are same as was used while encryption. These r1 and r2 values could be secret tokens that can be used in integration with other security mechanisms.
+
+To make the conversions lossless, use the below argument:
+```
+--ll 1
+```
+Note: The lossless algorithm is slower and consumes more memory. Also, the shuffle algorithm also slows down the encryption and decryption. Hence, usage of these options are only advised if required.
+
+
