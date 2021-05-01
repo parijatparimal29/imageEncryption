@@ -7,6 +7,7 @@ from scipy.fftpack import dct, idct
 import numpy as np
 from numpy.random import MT19937
 from numpy.random import RandomState, SeedSequence
+from math import log10, sqrt
 
 def save_as_fp(matrix, filename):
     '''
@@ -120,7 +121,16 @@ def extract_by_block(img_dct, block_size=8):
 def get_loss(img1_file, img2_file):
     img1 = handle_input(img1_file)
     img2 = handle_input(img2_file)
-    return np.sum((img1 - img2)**2) / img1.size
+    
+    #Calculating Mean squared error
+    mse = np.sum((img1 - img2)**2) / img1.size
+    
+    #Calculating Peak Signal-to-Noise Ratio (PSNR)
+    psnr = 100
+    if mse != 0:
+        max_val = 255.0
+        psnr = 20*log10(max_val/sqrt(mse))
+    return mse, psnr
 
 def shuffle_image(input_rgb, r1, r2):
     rs_row = RandomState(MT19937(SeedSequence(r1)))
