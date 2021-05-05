@@ -1,5 +1,6 @@
 import argparse
 import pywt
+import os
 from skimage import io
 from skimage.color import rgb2gray
 from skimage.transform import resize
@@ -23,7 +24,7 @@ def save_as_fp(matrix, filename):
     #Store the pixel values with floating point
     for row in matrix:
         for tup in row:
-            file.write(' '.join([str(elem) for elem in tup]) + '\n')
+            file.write(' '.join([str(elem) for elem in [tup]]) + '\n')
             
     file.close()
     
@@ -40,6 +41,7 @@ def read_as_fp(filename):
     num_of_elems = int(shape[2])
     tempArr = list()
     for s in textString[1:]:
+        s = s.split('[')[-1].split(']')[0]
         for num in s.split():
             tempArr.append(float(num))
     array = np.array(tempArr).reshape(num_of_rows, num_of_tuples, num_of_elems)
@@ -53,7 +55,9 @@ def handle_input(filename, matrix_mode=0):
         ouptut  : [[(r,g,b)]] or [[(r,g,b,a)]] => 2d matrix where each element is a tuple of r, g, b (or RGBA)
     '''
     if matrix_mode:
-        return read_as_fp(filename[:filename.rfind('.')+1]+'txt')
+        new_filename = filename[:filename.rfind('.')+1]+'txt'
+        if(os.path.exists(new_filename)):
+            return read_as_fp(new_filename)
     return io.imread(filename)/255
     
 
