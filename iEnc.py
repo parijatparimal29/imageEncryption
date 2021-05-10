@@ -45,7 +45,6 @@ def read_as_fp(filename):
         for num in s.split():
             tempArr.append(float(num))
     array = np.array(tempArr).reshape(num_of_rows, num_of_tuples, num_of_elems)
-    #print(array.dtype.type)
     return array
 
 def handle_input(filename, matrix_mode=0):
@@ -67,8 +66,8 @@ def handle_output(rgb_matrix, output_filename, matrix_mode=0):
         input    : [[(r,g,b)]] or [[(r,g,b,a)]] => 2d matrix where each element is a tuple of r, g, b (or RGBA)
                    string => filename
     '''
-    if(len(rgb_matrix.shape)>2 and rgb_matrix.shape[2] == 4):
-        rgb_matrix[:,:,3] = 1
+    if(matrix_mode==0 and len(rgb_matrix.shape)>2 and rgb_matrix.shape[2] == 4):
+        rgb_matrix[:,:,3] = 1.0
     if matrix_mode:
         save_as_fp(rgb_matrix, output_filename[:output_filename.rfind('.')+1]+'txt')
     io.imsave(output_filename,rgb_matrix)
@@ -124,9 +123,9 @@ def extract_by_block(img_dct, block_size=8):
             combined_watermark.append(inner_dct[5][5])
     return combined_watermark
 
-def get_loss(img1_file, img2_file):
-    img1 = handle_input(img1_file)
-    img2 = handle_input(img2_file)
+def get_loss(img1_file, img2_file, ll=0):
+    img1 = handle_input(img1_file, ll)
+    img2 = handle_input(img2_file, ll)
     
     #Calculating Mean squared error
     mse = np.sum((img1 - img2)**2) / img1.size
@@ -180,7 +179,7 @@ def inverse_shuffle(input_rgb, r1, r2):
             
     return shuf_rgb
 
-def encrypt_dctdwt(placeholder_image, to_hide_image, encryption_method, output_filename, shuffle, r1, r2, ll):
+def encrypt_dctdwt(placeholder_image, to_hide_image, output_filename, shuffle, r1, r2, ll):
     '''
         Encrypts to_hide_image into placeholder method using encryption_method and outputs encrypted file as output_filename
         input    : string => placeholder filename
@@ -259,7 +258,7 @@ def decrypt_dctdwt(encrypted_image, output_filename, shuffle, r1, r2, ll):
     #Saving the output watermark image
     handle_output(decrypted_img, output_filename, ll)
 
-def enc_dct(encryption_parameter, placeholder_image, to_hide_image, encryption_method, output_filename, shuffle, r1, r2, ll):
+def enc_dct(encryption_parameter, placeholder_image, to_hide_image, output_filename, shuffle, r1, r2, ll):
     '''
         Encrypts to_hide_image into placeholder method using encryption_method and outputs encrypted file as output_filename
         input    : float  => encryption parameter
@@ -283,7 +282,7 @@ def enc_dct(encryption_parameter, placeholder_image, to_hide_image, encryption_m
     
     handle_output(encrypted_rgb, output_filename, ll)
     
-def decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryption_method, output_filename, shuffle, r1, r2,ll):
+def decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, output_filename, shuffle, r1, r2,ll):
     '''
         Encrypts to_hide_image into placeholder method using encryption_method and outputs encrypted file as output_filename
         input    : string => filename of encrypted image
@@ -291,7 +290,7 @@ def decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryp
                    string => filename of output image
     '''
     
-    placeholder_rgb = handle_input(placeholder_image)
+    placeholder_rgb = handle_input(placeholder_image, ll)
     encrypted_rgb = handle_input(encrypted_image, ll)
    
     decrypted_rgb = (dct(encrypted_rgb, norm='ortho') - dct(placeholder_rgb, norm='ortho'))/encryption_parameter
@@ -300,7 +299,7 @@ def decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryp
     if(shuffle):
         decrypted_rgb = inverse_shuffle(decrypted_rgb, r1, r2)
     
-    handle_output(decrypted_rgb, output_filename)
+    handle_output(decrypted_rgb, output_filename, ll)
     
 def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename, shuffle=0, r1=0, r2=0, ll=0):
     '''
@@ -313,10 +312,10 @@ def encrypt(placeholder_image, to_hide_image, encryption_method, output_filename
 
     if(encryption_method == 'dct'):
         encryption_parameter = 0.01
-        enc_dct(encryption_parameter, placeholder_image, to_hide_image, encryption_method, output_filename, shuffle, r1, r2,ll)
+        enc_dct(encryption_parameter, placeholder_image, to_hide_image, output_filename, shuffle, r1, r2,ll)
         
     elif(encryption_method == 'dctdwt'):
-        encrypt_dctdwt(placeholder_image, to_hide_image, encryption_method, output_filename, shuffle, r1, r2,ll)
+        encrypt_dctdwt(placeholder_image, to_hide_image, output_filename, shuffle, r1, r2,ll)
         
     else:
         print("Encryption Method not specified or unavailable")
@@ -331,7 +330,7 @@ def decrypt(placeholder_image, encrypted_image, encryption_method, output_filena
     
     if(encryption_method == 'dct'):
         encryption_parameter = 0.01
-        decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, encryption_method, output_filename, shuffle, r1, r2,ll)
+        decrypt_dct(encryption_parameter, placeholder_image, encrypted_image, output_filename, shuffle, r1, r2,ll)
     
     elif(encryption_method == 'dctdwt'):
         decrypt_dctdwt(encrypted_image, output_filename, shuffle, r1, r2,ll)
