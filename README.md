@@ -10,6 +10,8 @@ Steps:
 4. Image C can now be distributed to trusted parties
 5. Trusted party can decrypt image B from image C
 
+To follow how the algorithms work and how threats are defended, **final_demo.ipynb** shows the experiments performed to evaluate the algorithms.
+
 How to run:
 
 To encrypt an image into a placeholder image:
