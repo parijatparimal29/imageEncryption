@@ -67,6 +67,8 @@ def handle_output(rgb_matrix, output_filename, matrix_mode=0):
         input    : [[(r,g,b)]] or [[(r,g,b,a)]] => 2d matrix where each element is a tuple of r, g, b (or RGBA)
                    string => filename
     '''
+    if(len(rgb_matrix.shape)>2 and rgb_matrix.shape[2] == 4):
+        rgb_matrix[:,:,3] = 1
     if matrix_mode:
         save_as_fp(rgb_matrix, output_filename[:output_filename.rfind('.')+1]+'txt')
     io.imsave(output_filename,rgb_matrix)
